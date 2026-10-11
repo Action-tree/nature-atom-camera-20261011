@@ -2,7 +2,7 @@
 
 > 最新增量：请先阅读 [摆臂速度与真实语音](UPDATE_SPEED_ASR.md)。它更新下文的速度展示与 ASR 配置；针脚和基础协议沿用。
 
-[下载完整网页与固件源码包](../自然原子相机-Qoder源码包.zip)。解压后进入 `arctic-tern`。另有[已编译烧录包](../自然原子相机-ESP32烧录包.zip)，可减少现场下载编译工具链的时间。
+[下载完整网页与固件源码包](https://github.com/Action-tree/nature-atom-camera-20261011/releases/tag/hackathon-20261011)。解压后进入 `arctic-tern`。另有[已编译烧录包](https://github.com/Action-tree/nature-atom-camera-20261011/releases/tag/hackathon-20261011)，可减少现场下载编译工具链的时间。
 
 完整固件已通过编译与链接；[验证记录](VALIDATION.md)。真机结果仍须现场补记。
 
@@ -126,7 +126,7 @@ action 为 `calibrate/start/stop/read`；返回 `{seq,action,runId,expiresAt}`�
 | `src/components/Outdoor.jsx` | 本地任务准备、离线包和设备区 |
 | `server/device.js` / `device-live.js` | 能力凭证、任务、记录、命令、运动和音频接口 |
 
-原来的现实对手、身长比较和百米实验留在“一起跑一场”底部折叠的家长工具；不占主展示。旧localStorage数据兼容。
+现实对手与测量代码保留在源码中，主界面不再显示家长工具菜单；书本速度对比直接与摆臂数据同屏。旧localStorage数据兼容。
 
 ## 17:53 前的真机验收顺序
 

@@ -1,5 +1,9 @@
 # 自然原子相机 · 每日观鸟
 
+[板端能力、按键与交付边界](BOARD_DELIVERY.md) · [下载完整源码和已编译烧录包](https://github.com/Action-tree/nature-atom-camera-20261011/releases/tag/hackathon-20261011)
+
+展示入口：https://5173-capy-1773292403825-216435-preview.happycapy.ai
+
 2026-10-11 为 Ship it Sunday #014「AI for Kids」从零创建的独立项目。首个可玩主题：跟随北极燕鸥，遇见两个夏天。未复用 Action-Tree 历史代码。
 
 ## 当前交付
