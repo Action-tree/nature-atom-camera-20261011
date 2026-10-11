@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';import {taskPack} from '../src/logic.js';
+const base=process.env.TEST_BASE||'http://127.0.0.1:5173';
+const post=(url,body)=>fetch(base+url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+const pack=taskPack('上海','park','鸟怎样落脚');const q=await(await post('/api/device/queue',{pack})).json();const prefix='/api/device/'+q.code;
+assert.equal((await post(prefix+'/command',{action:'invalid'})).status,400);
+const cmd=await(await post(prefix+'/command',{action:'start'})).json();assert.equal(cmd.seq,1);assert.equal((await(await fetch(base+prefix+'/commands?after=0')).json()).commands.length,1);assert.equal((await(await fetch(base+prefix+'/commands?after=1')).json()).commands.length,0);
+const m={bootId:'test-boot',seq:1,runId:cmd.runId,phase:'running',strokes:4,cadence:90,gameSpeed:4.5,progress:12};
+assert.equal((await post(prefix+'/motion',m)).status,200);assert.equal((await(await post(prefix+'/motion',m)).json()).duplicate,true);assert.equal((await post(prefix+'/motion',{...m,seq:2,gameSpeed:99})).status,400);
+assert.equal((await post(prefix+'/motion',{...m,bootId:'reboot'})).status,200);assert.equal((await post(prefix+'/motion',{...m,seq:3})).status,409);
+const wav=Buffer.alloc(32044);wav.write('RIFF');wav.writeUInt32LE(32036,4);wav.write('WAVEfmt ',8);wav.writeUInt32LE(16,16);wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);wav.writeUInt32LE(16000,24);wav.writeUInt32LE(32000,28);wav.writeUInt16LE(2,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(32000,40);
+const send=body=>fetch(base+prefix+'/audio/test-event',{method:'POST',headers:{'Content-Type':'audio/wav'},body});
+assert.equal((await send(Buffer.from('not audio'))).status,400);assert.equal((await send(wav)).status,202);assert.equal((await(await send(wav)).json()).duplicate,true);
+assert.equal((await(await fetch(base+prefix+'/audio/test-event')).json()).status,'needs_transcript');
+assert.equal((await post(prefix+'/audio/test-event/transcript',{text:'两只鸟落在电线上，像鸽子但不确定。'})).status,200);
+const obs={taskId:pack.id,eventId:'test-event',quote:'两只鸟落在电线上，像鸽子但不确定。',clue:'landing',confirmed:true};assert.equal((await post(prefix+'/observations',{...obs,confirmed:false})).status,400);assert.equal((await post(prefix+'/observations',obs)).status,200);
+const d=await(await fetch(base+prefix+'/status')).json();assert.equal(d.records[0].clue,'landing');assert.match(d.records[0].nextQuestion,/翅膀/);assert.equal(d.audio[0].status,'confirmed');assert.equal((await fetch(base+prefix+'/audio/test-event/wav')).status,404);
+console.log('PASS live API: commands, cursor, telemetry validation, dedup, reboot rejection, WAV format gate, manual transcript, child-confirmed observation, next loop, raw-audio release. Simulated device.');

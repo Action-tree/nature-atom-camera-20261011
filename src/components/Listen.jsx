@@ -1,5 +1,6 @@
 import React,{useRef,useState} from 'react';
 import {Play,Pause,Headphones,Check,ArrowRight,RotateCcw,Users} from 'lucide-react';
+import VoiceInput from './VoiceInput.jsx';
 import AmbientListen from './AmbientListen.jsx';
 import BirdPortrait from './BirdPortrait.jsx';
 import {SOUND_BIRDS,soundMatch} from '../sounds.js';
@@ -16,6 +17,6 @@ export default function Listen({state,setState,onBadge}){
  <div className="guess-panel"><div className="player-switch"><Users size={17}/>{[[1,'一个人听'],[2,'两个人轮流猜']].map(([n,l])=><button key={n} className={players===n?'selected':''} onClick={()=>{clear();setPlayers(n);}}>{l}</button>)}</div><span className="eyebrow">{done?'一起揭晓':players===2?`轮到小队友 ${answers.length+1}，先各自选择`:'听完，再选一个轮廓'}</span><div className="bird-options">{SOUND_BIRDS.map(b=><button key={b.id} disabled={done} className={choice===b.id?'selected':''} onClick={()=>setChoice(b.id)} aria-label={`选择轮廓 ${b.letter}：${b.shape}`}><BirdPortrait bird={b.id}/><strong>{b.letter} · {b.shape}</strong></button>)}</div>
  {!done?<><button className="primary full" disabled={!choice||!heard} onClick={submit}>{heard?'确认我的猜想':'先听至少一会儿，再选择'}<Check size={16}/></button>{answers.length>0&&<p className="fine-print">前一位的答案已收好，轮到你独立判断。</p>}</>:<div className="guess-result" role="status">{answers.map((a,i)=><p key={i}>{a.speaker}：{a.choice===bird.id?'匹配到了这段录音':'这次还没匹配到'}</p>)}{!match&&<button className="secondary" onClick={()=>{setAnswers([]);setChoice('');setHeard(false);setHint(true);}}>带着新线索，再听一次<RotateCcw size={14}/></button>}</div>}
  {!match&&<><button className="text-button" onClick={()=>setHint(!hint)}>{hint?'收起线索':'给我一点声音线索'}</button>{hint&&<p className="sound-clue">{bird.clue}</p>}</>}
- {match&&<><label className="input-label" htmlFor="sound-memory">这段声音，让你想到什么？</label><textarea id="sound-memory" rows={3} maxLength={200} value={note} onChange={e=>setNote(e.target.value)} placeholder="它像……我和朋友听到的不同是……" disabled={saved}/><button className="primary full" disabled={saved} onClick={save}>{saved?'声音已收进路牌':'收下这张声音底片'}</button>{saved&&<button className="text-button" onClick={onBadge}>看看我的声音路牌<ArrowRight size={14}/></button>}</>}
+ {match&&<><VoiceInput id="sound-memory" value={note} onChange={setNote} disabled={saved} label="这段声音，让你想到什么？" maxLength={200}/><button className="primary full" disabled={saved} onClick={save}>{saved?'声音已收进路牌':'收下这张声音底片'}</button>{saved&&<button className="text-button" onClick={onBadge}>看看我的声音路牌<ArrowRight size={14}/></button>}</>}
  <button className="next-sound" onClick={()=>{clear();setRound(r=>r+1);}}>换一段新的声音<ArrowRight size={16}/></button><p className="fine-print">竞猜库目前有 2 段参考录音。轮廓与显影为物种参考插画，不是现场拍摄，也不把相似叫声当成确定鉴定。</p></div></div>}</section>;
 }

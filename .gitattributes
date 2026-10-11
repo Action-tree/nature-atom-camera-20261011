@@ -1,0 +1,2 @@
+# Keep the vendor drivers' original whitespace and license headers intact.
+firmware/lib/** -whitespace

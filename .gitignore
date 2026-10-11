@@ -5,3 +5,6 @@ public/nature.mp3
 playwright-report/
 test-results/
 *.log
+firmware/.pio/
+firmware/include/Secrets.h
+firmware/config.local.json

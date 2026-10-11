@@ -1,0 +1,8 @@
+import React,{useEffect,useState} from 'react';
+export default function DeviceInbox({device,onSync}){
+ const [items,setItems]=useState([]),[edits,setEdits]=useState({}),[message,setMessage]=useState('');
+ useEffect(()=>{if(!device)return;let alive=true;async function poll(){try{const r=await fetch(`/api/device/${device.code}/status`,{signal:AbortSignal.timeout(2500)});if(!r.ok)return;const d=await r.json();if(alive)setItems(d.audio||[]);}catch{}}poll();const t=setInterval(poll,3000);return()=>{alive=false;clearInterval(t);};},[device?.code]);
+ async function save(a){try{const r=await fetch(`/api/device/${device.code}/audio/${a.eventId}/transcript`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:edits[a.eventId]??a.text})});if(!r.ok)throw Error();setMessage('文字已交给板子，请孩子读完后按中键确认。');onSync?.();}catch{setMessage('文字没有提交成功，请保留录音后重试。');}}
+ if(!items.length)return null;
+ return <div className="audio-inbox"><h3>板子带回来的声音</h3><p>没有配置转写服务时，可以由同行大人听录音、补文字。确认权留在孩子手里。</p>{items.filter(a=>a.status!=='confirmed').map(a=><article key={a.eventId}><p>{a.status==='transcribing'?'正在转写':a.status==='review'?'等待孩子在板子确认':'等待转写或大人帮忙记录'}</p><audio controls preload="none" src={`/api/device/${device.code}/audio/${a.eventId}/wav`}/><textarea aria-label="录音转写文字" rows={3} maxLength={300} value={edits[a.eventId]??a.text} onChange={e=>setEdits({...edits,[a.eventId]:e.target.value})}/><button className="secondary" disabled={!(edits[a.eventId]??a.text).trim()} onClick={()=>save(a)}>把文字交给板子确认</button></article>)}{items.every(a=>a.status==='confirmed')&&<p>声音的原话已经确认，点击同步，把发现收进户外路牌。</p>}{message&&<p role="status">{message}</p>}</div>;
+}
