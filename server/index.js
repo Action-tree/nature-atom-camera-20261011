@@ -1,4 +1,5 @@
 import express from 'express';
+import {voiceRouter,asrConfigured} from './asr.js';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {STOPS} from '../src/content.js';
@@ -7,9 +8,10 @@ import {cardReply} from '../src/logic.js';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const app=express();app.disable('x-powered-by');app.set('trust proxy',1);app.use(express.json({limit:'16kb'}));
 app.use('/api/device',deviceRouter);
+app.use('/api/voice',voiceRouter);
 const model=process.env.NATURE_ATOM_MODEL||'openai/gpt-5.6-luna';
 let calls=0;const limits=new Map();
-app.get('/api/health',(_,res)=>res.json({ok:true,aiConfigured:!!(process.env.AI_GATEWAY_API_KEY&&process.env.AI_GATEWAY_BASE_URL),mode:'arctic-tern-v2'}));
+app.get('/api/health',(_,res)=>res.json({ok:true,aiConfigured:!!(process.env.AI_GATEWAY_API_KEY&&process.env.AI_GATEWAY_BASE_URL),asrConfigured:asrConfigured(),mode:'arctic-tern-v3'}));
 app.post('/api/echo',async(req,res)=>{
  const index=Number(req.body?.index);const quote=req.body?.quote;
  if(!Number.isInteger(index)||index<0||index>=STOPS.length||typeof quote!=='string'||quote.trim().length<2||quote.length>300)return res.status(400).json({error:'请写下 2–300 字的发现、问题或想法。'});

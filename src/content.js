@@ -1,4 +1,5 @@
 export const SOURCES = [
+ {id:'motion',label:'摆臂速度换算',note:'每次交替摆臂假设对应一步，步长固定为0.8米。估算速度(km/h)=摆臂次数/分钟 × 0.8 × 60 ÷ 1000。原地摆臂也会产生数字，不是实测跑速或距离；100米时间按当前估算匀速外推。进度为游戏完成度。'},
  {id:'tracking',label:'迁徙研究 · Egevang 等，PNAS 2010',url:'https://www.pnas.org/doi/10.1073/pnas.0909493107',note:'11 只格陵兰／冰岛繁殖鸟的追踪；路线和距离不代表所有北极燕鸥。'},
  {id:'author',label:'研究作者的追踪解读',url:'https://www.carstenegevang.com/single-post/the-arctic-tern-extreme-migration-from-pole-to-pole',note:'样本年均往返 70,900 km；北大西洋平均停留约 25 天；北返 S 形路线与盛行风相应。'},
  {id:'cornell',label:'康奈尔鸟类实验室 · 北极燕鸥',url:'https://www.allaboutbirds.org/guide/Arctic_Tern/lifehistory',note:'食物包括小鱼和其他水生动物；不能用本游戏识别现场鸟种。'},

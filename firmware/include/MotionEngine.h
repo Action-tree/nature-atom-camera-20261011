@@ -7,7 +7,7 @@
 class MotionEngine {
 public:
  enum Phase { IDLE, CALIBRATING, READY, RUNNING, FINISHED, ERROR };
- struct Snapshot { Phase phase=IDLE; uint32_t strokes=0; float cadence=0,speed=0,progress=0; };
+ struct Snapshot { Phase phase=IDLE; uint32_t strokes=0; float cadence=0,speed=0,progress=0,peakKmh=0; };
  void calibrate(){ s=Snapshot{};s.phase=CALIBRATING;n=0;sumX=sumY=sumZ=0;filtered=0;axis=-1;polarity=0;lastSample=lastPulse=0; }
  bool start(){if(s.phase!=READY&&s.phase!=FINISHED)return false;s=Snapshot{};s.phase=RUNNING;filtered=0;axis=-1;polarity=0;lastPulse=lastSample=0;return true;}
  void stop(){if(s.phase==RUNNING){s.phase=READY;s.speed=0;s.cadence=0;}}
@@ -35,6 +35,7 @@ public:
   }
   s.speed=lastPulse&&uint32_t(ms-lastPulse)<=1100?std::min(10.f,s.cadence/20.f):0;
   if(!s.speed)s.cadence=0;
+  s.peakKmh=std::max(s.peakKmh,s.cadence*.048f); // 0.8m assumed step; estimate only.
   s.progress=std::min(100.f,s.progress+s.speed*dt);
   if(s.progress>=100){s.phase=FINISHED;s.speed=0;}
  }

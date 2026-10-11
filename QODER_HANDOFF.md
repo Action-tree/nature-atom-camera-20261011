@@ -1,5 +1,7 @@
 # Qoder 合并与真机验收单
 
+> 最新增量：请先阅读 [摆臂速度与真实语音](UPDATE_SPEED_ASR.md)。它更新下文的速度展示与 ASR 配置；针脚和基础协议沿用。
+
 [下载完整网页与固件源码包](../自然原子相机-Qoder源码包.zip)。解压后进入 `arctic-tern`。另有[已编译烧录包](../自然原子相机-ESP32烧录包.zip)，可减少现场下载编译工具链的时间。
 
 完整固件已通过编译与链接；[验证记录](VALIDATION.md)。真机结果仍须现场补记。
@@ -57,7 +59,7 @@ auto snapshot = engine.snapshot(monotonic_ms);
 
 2秒连续静止、陀螺仪零偏扣除、主轴正负阈值45 deg/s、220 ms最短间隔、240次/分钟上限。每次前向/后向达到阈值计一个摆动脉冲，不称作完整步数。没有新摆动约1.1秒后速度归零；采样断流150ms后快照速度归零。持续超2秒读不到IMU时驱动报 error。
 
-映射：`min(10, cadence / 20)` 格/秒；100格完成。不要换成实际m/s或km/h。字体刷新不参与积分：采样独立任务50 Hz、网络约250ms循环加请求耗时、屏幕只在页/阶段变化刷新。
+映射：`min(10, cadence / 20)` 格/秒；100格完成。新增估算跑速为 `cadence×0.048 km/h`，假设一步0.8米，必须标为估算。可选上传 `peakKmh`，范围0–12；新版固件结束页显示这个峰值。字体刷新不参与积分：采样独立任务50 Hz、网络约250ms循环加请求耗时、屏幕只在页/阶段变化刷新。
 
 ## HTTP 协议（同一网页服务）
 
@@ -99,7 +101,7 @@ action 为 `calibrate/start/stop/read`；返回 `{seq,action,runId,expiresAt}`�
 - `POST /api/device/{code}/audio/{eventId}`，Content-Type `audio/wav`，body为WAV字节。
 - 只接收规范44字节头的16kHz / mono / 16-bit PCM，最长10秒；固件8秒。每队列最多3个未处理云端录音，本地最多8条。
 - 返回202；再 `GET /audio/{eventId}` 查询：`needs_transcript/transcribing/review/confirmed`。
-- 有ASR时服务端 `NATURE_ASR_URL` 收WAV，返回 `{"text":"..."}`，可用 `NATURE_ASR_TOKEN`。服务地址和密钥只放Node服务环境变量。
+- 推荐服务端 `DASHSCOPE_API_KEY` 接入阿里云，网页和板端共用；也兼容 `NATURE_ASR_URL` 收WAV，返回 `{"text":"..."}`，可用 `NATURE_ASR_TOKEN`。服务地址和密钥只放Node服务环境变量。
 - 无ASR时网页设备区可播放声音并 `POST /audio/{eventId}/transcript {"text":"..."}`，来源标为成人转写。
 - 板子展示候选文字；孩子读完并按中键，才 `POST /observations`。
 
@@ -117,7 +119,7 @@ action 为 `calibrate/start/stop/read`；返回 `{seq,action,runId,expiresAt}`�
 |---|---|
 | `src/App.jsx` | 四个主入口；户外阅读器放在页脚 |
 | `src/components/MotionRace.jsx` | 设备运动／显式点按兜底／感受入路牌 |
-| `src/components/VoiceInput.jsx` | 浏览器语音优先，文字可展开；确认前不保存 |
+| `src/components/VoiceInput.jsx` | 真实麦克风录音与阿里云转写，文字可编辑；确认前不保存 |
 | `src/deviceClient.js` | 配对、命令、遥测时效判断 |
 | `src/useDeviceSync.js` | 已确认板端观察自动入网页手记 |
 | `src/components/DeviceInbox.jsx` | 大人补录音文字，交还孩子确认 |
@@ -138,6 +140,6 @@ action 为 `calibrate/start/stop/read`；返回 `{seq,action,runId,expiresAt}`�
 
 ## 已知边界
 
-队列目前内存保存、6小时过期。主服务重启需重新配对；板端任务与原声不自动抹去。恢复旧outbox时必须用导出的原任务id创建新队列，见 `firmware/README.md`。网页声音是浏览器语音服务，不保证所有手机或离线可用。默认地域上海是家庭可改的任务区域，不是GPS定位结果。
+队列目前内存保存、6小时过期。主服务重启需重新配对；板端任务与原声不自动抹去。恢复旧outbox时必须用导出的原任务id创建新队列，见 `firmware/README.md`。网页通过麦克风录音并交给服务端阿里云转写，需要联网与麦克风权限。默认地域上海是家庭可改的任务区域，不是GPS定位结果。
 
 今日先验证亲子循环与内容有效性；长续航、低功耗、随时录音、多人云账户、完整地区鸟库及板端AI留到下一轮。

@@ -65,7 +65,7 @@ void networkTask(void*){
  while(true){
   if(WiFi.status()!=WL_CONNECTED){if(millis()-retry>15000){WiFi.reconnect();retry=millis();}vTaskDelay(pdMS_TO_TICKS(500));continue;}
   String answer;if(!receivedTask||millis()-lastTask>30000){fetchTask();receivedTask=true;lastTask=millis();}
-  xSemaphoreTake(motionLock,portMAX_DELAY);auto m=motion.snapshot(millis());String currentRun=runId;xSemaphoreGive(motionLock);JsonDocument d;d["bootId"]=bootId;d["seq"]=++telemetrySeq;d["runId"]=currentRun;d["phase"]=MotionEngine::phaseName(m.phase);d["strokes"]=m.strokes;d["cadence"]=m.cadence;d["gameSpeed"]=m.speed;d["progress"]=m.progress;String body;serializeJson(d,body);int st=request("/motion","POST",body,answer);
+  xSemaphoreTake(motionLock,portMAX_DELAY);auto m=motion.snapshot(millis());String currentRun=runId;xSemaphoreGive(motionLock);JsonDocument d;d["bootId"]=bootId;d["seq"]=++telemetrySeq;d["runId"]=currentRun;d["phase"]=MotionEngine::phaseName(m.phase);d["strokes"]=m.strokes;d["cadence"]=m.cadence;d["gameSpeed"]=m.speed;d["progress"]=m.progress;d["peakKmh"]=m.peakKmh;String body;serializeJson(d,body);int st=request("/motion","POST",body,answer);
   if(st==404){Serial.println("PAIR expired or server restarted; offline records retained");vTaskDelay(pdMS_TO_TICKS(5000));continue;}
   if(request("/commands?after="+String(cursor),"GET","",answer)==200){JsonDocument cmds;if(!deserializeJson(cmds,answer)){uint32_t before=cursor;
    bool delivered=true;for(JsonObject c:cmds["commands"].as<JsonArray>()){Action a{};strlcpy(a.action,c["action"]|"",sizeof(a.action));strlcpy(a.run,c["runId"]|"",sizeof(a.run));if(xQueueSend(actions,&a,0)==pdTRUE)cursor=c["seq"];else{delivered=false;break;}}

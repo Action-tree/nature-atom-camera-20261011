@@ -12,9 +12,10 @@ int main(){
  assert(e.snapshot(t).strokes==0&&e.snapshot(t).progress==0);
  for(int i=0;i<300;i++,t+=20)e.sample(1+150*std::sin(i*.02*2*3.141592653589793),2,1,1,t);
  auto s=e.snapshot(t);assert(s.strokes>=10&&s.strokes<=13);assert(s.progress>10&&s.progress<100);
+ assert(s.peakKmh>5&&s.peakKmh<=11.52f);
  assert(e.snapshot(t+200).speed==0);
  for(int i=0;i<75;i++,t+=20)e.sample(1,2,1,1,t);
- auto stopped=e.snapshot(t);assert(stopped.speed==0);
+ auto stopped=e.snapshot(t);assert(stopped.speed==0);assert(stopped.peakKmh==s.peakKmh);
  for(int i=0;i<100;i++,t+=20)e.sample(1,2,1,1,t);
  assert(e.snapshot(t).progress==stopped.progress);
  for(int i=0;i<2000;i++,t+=20)e.sample(1+150*std::sin(i*.02*2*3.141592653589793),2,1,1,t);

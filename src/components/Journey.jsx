@@ -21,9 +21,9 @@ export default function Journey({state,setState,onBadge,onSources}){
  {previous&&<div className="previous-note">上一站，你说：“{previous.quote.slice(0,42)}{previous.quote.length>42?'…':''}”</div>}
  <span className="eyebrow"><Feather size={14}/>留下你的{stop.stamp}</span><h3>{stop.prompt}</h3>
  {!echo?<><div className="choice-list">{stop.choices.map(c=><button key={c} className={quote===c?'selected':''} onClick={()=>{setQuote(c);setError('');}} disabled={busy}>{c}</button>)}</div>
- <VoiceInput id="discovery" value={quote} onChange={setQuote} disabled={busy} placeholder={stop.hint} label="我的发现、想法或问题"/>
- <button className="primary full" onClick={listen} disabled={busy||quote.trim().length<2}>{busy?'回音石正在读你的话…':'让回音石听见'}{!busy&&<Send size={16}/>}</button></>:<div className="echo-note" aria-live="polite"><span className="mode-label">{echo.mode==='ai'?'AI 回音 · 依据本关知识卡':'知识卡回音 · 模板模式'}</span><blockquote>“{echo.quote}”</blockquote><p>{echo.echo}</p>{echo.mode==='ai'&&<p className="followup">带着想一想：{echo.followup}</p>}<span className="confirm-caption">这句话和「{stop.stamp}」刻印，是你想留下的吗？</span><button className="primary full" onClick={confirm}>确认，{view===4?'生成我的路牌':'刻下发现并继续'}<ArrowRight size={16}/></button><button className="text-button" onClick={()=>setEcho(null)}><RotateCcw size={13}/>我想改一改</button></div>}
+ <VoiceInput key={stop.id} id="discovery" value={quote} onChange={setQuote} disabled={busy} placeholder={stop.hint} label="我的发现、想法或问题"/>
+ <button className="primary full" onClick={listen} disabled={busy||quote.trim().length<2}>{busy?'回音石正在读你的话…':'让回音石听见'}{!busy&&<Send size={16}/>}</button></>:<div className="echo-note" aria-live="polite"><span className="mode-label">{echo.mode==='ai'?'AI 回音 · 依据本关知识卡':'知识卡回音'}</span><blockquote>“{echo.quote}”</blockquote><p>{echo.echo}</p>{echo.mode==='ai'&&<p className="followup">带着想一想：{echo.followup}</p>}<span className="confirm-caption">这句话和「{stop.stamp}」刻印，是你想留下的吗？</span><button className="primary full" onClick={confirm}>确认，{view===4?'生成我的路牌':'刻下发现并继续'}<ArrowRight size={16}/></button><button className="text-button" onClick={()=>setEcho(null)}><RotateCcw size={13}/>我想改一改</button></div>}
  {error&&<p className="error" role="alert">{error}</p>}
  </div>}
- <div className="panel-footnote">原创游戏 · 阅读与想象旅程，不计为实地观鸟记录</div></div></section></>;
+ <div className="panel-footnote">阅读与想象，也是一种出发。</div></div></section></>;
 }
