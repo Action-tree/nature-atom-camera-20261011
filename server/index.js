@@ -5,11 +5,11 @@ import {STOPS} from '../src/content.js';
 import {deviceRouter} from './device.js';
 import {cardReply} from '../src/logic.js';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const app=express();app.disable('x-powered-by');app.set('trust proxy',1);app.use(express.json({limit:'5kb'}));
+const app=express();app.disable('x-powered-by');app.set('trust proxy',1);app.use(express.json({limit:'16kb'}));
 app.use('/api/device',deviceRouter);
 const model=process.env.NATURE_ATOM_MODEL||'openai/gpt-5.6-luna';
 let calls=0;const limits=new Map();
-app.get('/api/health',(_,res)=>res.json({ok:true,aiConfigured:!!(process.env.AI_GATEWAY_API_KEY&&process.env.AI_GATEWAY_BASE_URL),mode:'arctic-tern-v1'}));
+app.get('/api/health',(_,res)=>res.json({ok:true,aiConfigured:!!(process.env.AI_GATEWAY_API_KEY&&process.env.AI_GATEWAY_BASE_URL),mode:'arctic-tern-v2'}));
 app.post('/api/echo',async(req,res)=>{
  const index=Number(req.body?.index);const quote=req.body?.quote;
  if(!Number.isInteger(index)||index<0||index>=STOPS.length||typeof quote!=='string'||quote.trim().length<2||quote.length>300)return res.status(400).json({error:'请写下 2–300 字的发现、问题或想法。'});
@@ -33,4 +33,4 @@ app.use('/nature.mp3',express.static(path.join(root,'public/nature.mp3')));
 if(process.argv.includes('--production')){app.use(express.static(path.join(root,'dist')));app.get('/{*path}',(_,res)=>res.sendFile(path.join(root,'dist/index.html')));}
 else{const {createServer}=await import('vite');const vite=await createServer({root,server:{middlewareMode:true,allowedHosts:true},appType:'spa'});app.use(vite.middlewares);}
 app.use((error,req,res,next)=>res.status(400).json({error:'请求格式不正确，请缩短内容后重试。'}));
-app.listen(Number(process.env.PORT||5173),'0.0.0.0',()=>console.log('Nature Atom ready on port '+(process.env.PORT||5173)));
+app.listen(Number(process.env.PORT||5173),'0.0.0.0',error=>{if(error){console.error('Nature Atom server could not start: '+error.code);process.exitCode=1;return;}console.log('Nature Atom ready on port '+(process.env.PORT||5173));});

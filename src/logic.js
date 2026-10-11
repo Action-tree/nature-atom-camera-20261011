@@ -1,8 +1,9 @@
 import { STOPS, DIMENSIONS, HABITATS } from './content.js';
+import {CLUES,nextFieldTask} from './outdoor.js';
 export const STORAGE_KEY='nature-atom-tern-v1';
-export const initialState=()=>({version:1,records:[],outdoor:[],nextQuestion:'',name:'',createdAt:new Date().toISOString()});
+export const initialState=()=>({version:1,records:[],outdoor:[],activities:[],golden:{},badgeNames:{},activeBadge:'journey',nextQuestion:'',name:'',createdAt:new Date().toISOString()});
 export function validState(s){return s?.version===1&&Array.isArray(s.records)&&s.records.length<=5&&s.records.every((r,i)=>r.stopId===STOPS[i].id&&typeof r.quote==='string'&&r.quote.length>0&&r.quote.length<=300)&&Array.isArray(s.outdoor);}
-export function loadState(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY));return validState(s)?s:initialState();}catch{return initialState();}}
+export function loadState(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY));return validState(s)?{...initialState(),...s}:initialState();}catch{return initialState();}}
 export function confirmRecord(state,index,quote,echo,mode){
  const clean=String(quote).trim().slice(0,300);if(!clean||index!==state.records.length||index>=STOPS.length)return state;
  const stop=STOPS[index];return {...state,records:[...state.records,{stopId:stop.id,dimension:stop.dimension,quote:clean,echo:String(echo).slice(0,300),mode,confirmed:true,kind:'story',at:new Date().toISOString()}],nextQuestion:stop.id==='return'?clean:state.nextQuestion};
@@ -36,5 +37,5 @@ export function outdoorNext(quote){
  return {title:'回到这条发现旁边',body:'和同行大人回到同一个安全位置，比较鸟的动作或周围环境有没有变化。说一句“刚才……现在……”，一样也可以。',question:'刚才和现在，你发现了什么变化？'};
 }
 export function raceRows(seconds){return [{id:'ostrich',label:'鸵鸟',speed:97,note:'书页最高速度估计'},{id:'coyote',label:'郊狼',speed:64,note:'书页近似速度'},{id:'bolt',label:'博尔特',speed:360/9.58,note:'100 米 9.58 秒的平均速度'},{id:'roadrunner',label:'走鹃',speed:32,note:'书页最高速度估计'},{id:'child',label:'我',speed:360/seconds,note:`你输入的 100 米 ${seconds} 秒`}].map(r=>({...r,time:360/r.speed}));}
-export function taskPack(city,habitat,question){const h=HABITATS[habitat]||HABITATS.park;return {schema:'nature-atom.task.v1',id:crypto.randomUUID(),createdAt:new Date().toISOString(),region:{city:String(city).slice(0,30)||'尚未选择',habitat:h.label,method:'family_selected'},question:String(question||'附近的鸟在哪里歇脚？').slice(0,300),pages:[{id:'go',title:'把屏幕放下，听一会儿',body:h.task},{id:'notice',title:'记录动作，不急着认名字',body:city.includes('上海')?h.clue:'先观察动作与环境。本地区尚未加载鸟种资料，不提供物种判断。'},{id:'return',title:'带一个发现回来',body:'记下：我看见／听见了什么？它在做什么？我还有什么问题？没有遇见鸟也算真实记录。'}],safety:'与同行大人在一起；不追、不投喂、不播放鸟叫引鸟；远离水边和道路。',sourceIds:city.includes('上海')?['shanghai']:[],hardwareStatus:'task-package-only'};}
+export function taskPack(city,habitat,question){const h=HABITATS[habitat]||HABITATS.park;return {schema:'nature-atom.task.v1',id:crypto.randomUUID(),createdAt:new Date().toISOString(),region:{city:String(city).slice(0,30)||'尚未选择',habitat:h.label,method:'family_selected'},question:String(question||'附近的鸟在哪里歇脚？').slice(0,300),pages:[{id:'go',title:'把屏幕放下，听一会儿',body:h.task},{id:'notice',title:'记录动作，不急着认名字',body:city.includes('上海')?h.clue:'先观察动作与环境。本地区尚未加载鸟种资料，不提供物种判断。'},{id:'return',title:'带一个发现回来',body:'记下：我看见／听见了什么？它在做什么？我还有什么问题？没有遇见鸟也算真实记录。'}],localLoop:CLUES.map(([id,label])=>({id,label,...nextFieldTask('',id)})),safety:'与同行人在一起；不追、不投喂、不播放鸟叫引鸟；远离水边、道路和电力设施。',sourceIds:city.includes('上海')?['shanghai']:[],hardwareStatus:'task-package-only'};}
 export function downloadFile(name,content,type='application/json'){const b=content instanceof Blob?content:new Blob([content],{type});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);}

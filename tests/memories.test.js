@@ -1,0 +1,12 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {initialState,confirmRecord} from '../src/logic.js';
+import {memoryBadge,memoryMarkdown} from '../src/memory.js';
+import {nextFieldTask,inferClue} from '../src/outdoor.js';
+import {compareMovement} from '../src/challenges.js';
+import {soundMatch} from '../src/sounds.js';
+test('sound reveal waits for all players and a correct match',()=>{assert.equal(soundMatch('blackbird',[{choice:'blackbird'}],2),false);assert.equal(soundMatch('blackbird',[{choice:'sparrow'}],1),false);assert.equal(soundMatch('blackbird',[{choice:'sparrow'},{choice:'blackbird'}],2),true);});
+test('landing observation is not reduced to earlier sound mention',()=>{const quote='我先听到鸟叫，看到两只鸟滑行，像鸽子但不确定，随后落在高压线上。';assert.equal(inferClue(quote),'landing');const task=nextFieldTask(quote);assert.match(task.body,/远离电力设施/);assert.match(task.question,/翅膀或尾巴/);assert.match(task.echo,/不确定/);});
+test('explicit confirmation can override a guessed clue',()=>{assert.equal(nextFieldTask('听到了鸟，可能落在远处','sound').clue,'sound');assert.equal(inferClue('没看到滑行，只听到叫声'),'sound');});
+test('memory golden quote selection preserves original words',()=>{const s=initialState();s.outdoor=[{id:'1',quote:'我听到声音。',at:'2026-10-11T08:00:00Z'},{id:'2',quote:'像鸽子，但我还不确定。',at:'2026-10-11T08:01:00Z'}];s.golden={outdoor:'1'};assert.equal(memoryBadge(s,'outdoor').quote,'我听到声音。');assert.equal(memoryBadge(s,'outdoor').complete,true);assert.match(memoryMarkdown(s),/像鸽子，但我还不确定/);});
+test('outdoor and story memories remain separate',()=>{let s=initialState();s=confirmRecord(s,0,'沿途吃什么','回音','knowledge_card');s.outdoor=[{id:'1',quote:'看见两只鸟滑行并落在电线上。',at:'2026-10-11'}];assert.equal(memoryBadge(s,'journey').motif,'fish');assert.equal(memoryBadge(s,'outdoor').motif,'landing');assert.equal(memoryBadge(s,'journey').records.length,1);});
+test('real movement uses entered units and can reverse ranking in body lengths',()=>{const r=compareMovement({distance:10,seconds:10,animalCm:5,animalSeconds:1,heightCm:120,bodyCm:.5});assert.equal(r.human,1);assert.equal(r.animal,.05);assert.ok(r.human>r.animal);assert.ok(r.humanLengths<r.animalLengths);assert.equal(compareMovement({distance:10,seconds:0,animalCm:5,animalSeconds:1}),null);});
